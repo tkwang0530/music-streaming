@@ -3,9 +3,9 @@ package main
 import (
 	"log"
 
-	"github.com/tkwang0530/music-streaming-project/internal/config"
-	"github.com/tkwang0530/music-streaming-project/internal/routers"
-	"github.com/tkwang0530/music-streaming-project/pkg/server"
+	"github.com/tkwang0530/music-streaming/internal/config"
+	"github.com/tkwang0530/music-streaming/internal/routers"
+	"github.com/tkwang0530/music-streaming/pkg/server"
 )
 
 func main() {
