@@ -20,21 +20,8 @@ type DatabaseConfig struct {
 }
 
 func Load() (*Config, error) {
-	// Set default environment variables
-	viper.SetDefault("db.host", "localhost")
-	viper.SetDefault("db.port", "3306")
-	viper.SetDefault("db.name", "music")
-	viper.SetDefault("db.user", "root")
-	viper.SetDefault("db.password", "password")
-
 	// Set the configuration file name and paths
-	viper.SetConfigName("config")
-	viper.AddConfigPath(".")
-	viper.AddConfigPath("..")
-	viper.AddConfigPath("../..")
-
-	// Bind environment variables
-	viper.AutomaticEnv()
+	viper.SetConfigFile("configs/.config.yaml")
 
 	// Load the configuration
 	if err := viper.ReadInConfig(); err != nil {
@@ -44,10 +31,9 @@ func Load() (*Config, error) {
 		}
 	}
 
-	var cfg Config
+	cfg := Config{}
 	if err := viper.Unmarshal(&cfg); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal configuration: %w", err)
 	}
-
 	return &cfg, nil
 }
