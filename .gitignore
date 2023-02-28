@@ -1,0 +1,33 @@
+# Ignore binary files
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Ignore object files
+*.o
+*.obj
+
+# Ignore build artifacts
+/build/
+
+# Ignore vendor directory
+/vendor/
+
+# Ignore cache and log files
+/cache/
+/log/
+
+# Ignore configuration files
+.env
+
+# Ignore Go specific files and directories
+/bin/
+/pkg/
+/vendor/
+/go.mod
+/go.sum
+
+# Ignore editor specific files
+.idea/
+.vscode/
