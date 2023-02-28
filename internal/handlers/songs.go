@@ -1,58 +1,99 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tkwang0530/music-streaming/internal/models"
 	"github.com/tkwang0530/music-streaming/internal/repositories"
-	"github.com/tkwang0530/music-streaming/internal/utils"
 )
 
-type SongHandler struct {
-	songRepository repositories.SongRepository
+type SongsHandler struct {
+	songsRepo *repositories.SongRepository
 }
 
-func NewSongHandler(songRepository repositories.SongRepository) *SongHandler {
-	return &SongHandler{
-		songRepository: songRepository,
+func NewSongsHandler(songsRepo *repositories.SongRepository) *SongsHandler {
+	return &SongsHandler{
+		songsRepo: songsRepo,
 	}
 }
 
-func (h *SongHandler) GetSongs(c *gin.Context) {
-	songs, err := h.songRepository.GetAll()
+func (h *SongsHandler) ListSongs(c *gin.Context) {
+	songs, err := h.songsRepo.ListSongs()
 	if err != nil {
-		utils.HandleError(c, http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to list songs"})
 		return
 	}
 
 	c.JSON(http.StatusOK, songs)
 }
 
-func (h *SongHandler) AddSong(c *gin.Context) {
-	var song models.Song
-	if err := json.NewDecoder(c.Request.Body).Decode(&song); err != nil {
-		utils.HandleError(c, http.StatusBadRequest, err)
-		return
-	}
-
-	if err := h.songRepository.Create(&song); err != nil {
-		utils.HandleError(c, http.StatusInternalServerError, err)
-		return
-	}
-
-	c.JSON(http.StatusCreated, song)
-}
-
-func (h *SongHandler) GetSongByID(c *gin.Context) {
+func (h *SongsHandler) GetSong(c *gin.Context) {
 	id := c.Param("id")
 
-	song, err := h.songRepository.GetByID(id)
+	song, err := h.songsRepo.GetSong(id)
 	if err != nil {
-		utils.HandleError(c, http.StatusNotFound, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get song"})
+		return
+	}
+
+	if song == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Song not found"})
 		return
 	}
 
 	c.JSON(http.StatusOK, song)
+}
+
+func (h *SongsHandler) CreateSong(c *gin.Context) {
+	song := &models.Song{}
+	if err := c.BindJSON(song); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	if err := h.songsRepo.CreateSong(song); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create song"})
+		return
+	}
+
+	c.JSON(http.StatusOK, song)
+}
+
+func (h *SongsHandler) UpdateSong(c *gin.Context) {
+	id := c.Param("id")
+
+	song, err := h.songsRepo.GetSong(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get song"})
+		return
+	}
+
+	if song == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Song not found"})
+		return
+	}
+
+	if err := c.BindJSON(song); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	if err := h.songsRepo.UpdateSong(song); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update song"})
+		return
+	}
+
+	c.JSON(http.StatusOK, song)
+}
+
+func (h *SongsHandler) DeleteSong(c *gin.Context) {
+	id := c.Param("id")
+
+	if err := h.songsRepo.DeleteSong(id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete song"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Song deleted"})
 }

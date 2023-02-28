@@ -2,27 +2,33 @@ package main
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/tkwang0530/music-streaming/internal/config"
-	"github.com/tkwang0530/music-streaming/internal/routers"
+	"github.com/tkwang0530/music-streaming/internal/utils"
 	"github.com/tkwang0530/music-streaming/pkg/server"
 )
 
 func main() {
-	// Load the configuration values
+	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
-		log.Fatalf("Failed to load configuration values: %s", err)
+		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
-	// Create a new router
-	r := routers.NewRouter()
+	// Initialize database connection
+	db, err := utils.NewDatabase(cfg.Database)
+	if err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
+	defer db.Close()
 
-	// Create a new server instance
-	s := server.NewServer(cfg.Server.Port, r)
-
-	// Start the server
-	if err := s.Start(); err != nil {
-		log.Fatalf("Failed to start server: %s", err)
+	// Start server
+	svr, err := server.New(db)
+	if err != nil {
+		log.Fatalf("Failed to create server: %v", err)
+	}
+	if err := svr.Start(); err != nil && err != http.ErrServerClosed {
+		log.Fatalf("Failed to start server: %v", err)
 	}
 }
