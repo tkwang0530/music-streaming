@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -20,6 +21,7 @@ func NewSongsHandler(songsRepo *repositories.SongRepository) *SongsHandler {
 
 func (h *SongsHandler) ListSongs(c *gin.Context) {
 	songs, err := h.songsRepo.ListSongs()
+	fmt.Println("err: ", err)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to list songs"})
 		return
@@ -46,18 +48,18 @@ func (h *SongsHandler) GetSong(c *gin.Context) {
 }
 
 func (h *SongsHandler) CreateSong(c *gin.Context) {
-	song := &models.Song{}
-	if err := c.BindJSON(song); err != nil {
+	params := &models.CreateSongParams{}
+	if err := c.BindJSON(params); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
 		return
 	}
 
-	if err := h.songsRepo.CreateSong(song); err != nil {
+	if err := h.songsRepo.CreateSong(params); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create song"})
 		return
 	}
 
-	c.JSON(http.StatusOK, song)
+	c.JSON(http.StatusNoContent, nil)
 }
 
 func (h *SongsHandler) UpdateSong(c *gin.Context) {
@@ -74,12 +76,13 @@ func (h *SongsHandler) UpdateSong(c *gin.Context) {
 		return
 	}
 
-	if err := c.BindJSON(song); err != nil {
+	params := &models.CreateSongParams{}
+	if err := c.BindJSON(params); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
 		return
 	}
 
-	if err := h.songsRepo.UpdateSong(song); err != nil {
+	if err := h.songsRepo.UpdateSong(song.ID, params); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update song"})
 		return
 	}

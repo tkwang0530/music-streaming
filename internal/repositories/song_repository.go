@@ -17,7 +17,7 @@ func NewSongRepository(db *sql.DB) *SongRepository {
 }
 
 func (r *SongRepository) ListSongs() ([]*models.Song, error) {
-	rows, err := r.db.Query("SELECT * FROM songs")
+	rows, err := r.db.Query("SELECT id, title, artist, album, genre, length, year, url, created_at, updated_at FROM songs")
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +26,7 @@ func (r *SongRepository) ListSongs() ([]*models.Song, error) {
 	songs := make([]*models.Song, 0)
 	for rows.Next() {
 		song := &models.Song{}
-		if err := rows.Scan(&song.ID, &song.Title, &song.Artist, &song.Album, &song.Genre, &song.Length, &song.Year); err != nil {
+		if err := rows.Scan(&song.ID, &song.Title, &song.Artist, &song.Album, &song.Genre, &song.Length, &song.Year, &song.URL, &song.CreatedAt, &song.UpdatedAt); err != nil {
 			return nil, err
 		}
 		songs = append(songs, song)
@@ -40,30 +40,27 @@ func (r *SongRepository) ListSongs() ([]*models.Song, error) {
 }
 
 func (r *SongRepository) GetSong(id string) (*models.Song, error) {
-	row := r.db.QueryRow("SELECT id, title, artist, album, genre, length, year FROM songs WHERE id=?", id)
+	row := r.db.QueryRow("SELECT id, title, artist, album, genre, length, year, url, created_at, updated_at FROM songs WHERE id=?", id)
 
 	song := &models.Song{}
-	err := row.Scan(&song.ID, &song.Title, &song.Artist, &song.Album, &song.Genre, &song.Length, &song.Year)
+	err := row.Scan(&song.ID, &song.Title, &song.Artist, &song.Album, &song.Genre, &song.Length, &song.Year, &song.URL, &song.CreatedAt, &song.UpdatedAt)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
 		return nil, err
 	}
 
 	return song, nil
 }
 
-func (r *SongRepository) CreateSong(song *models.Song) error {
-	_, err := r.db.Exec("INSERT INTO songs (id, title, artist, album, genre, length, year) VALUES (?, ?, ?, ?, ?, ?, ?)",
-		song.ID, song.Title, song.Artist, song.Album, song.Genre, song.Length, song.Year)
+func (r *SongRepository) CreateSong(params *models.CreateSongParams) error {
+	_, err := r.db.Exec("INSERT INTO songs (title, artist, album, genre, length, year, url, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())",
+		params.Title, params.Artist, params.Album, params.Genre, params.Length, params.Year, params.URL)
 
 	return err
 }
 
-func (r *SongRepository) UpdateSong(song *models.Song) error {
-	_, err := r.db.Exec("UPDATE songs SET title=?, artist=?, album=?, genre=?, length=?, year=? WHERE id=?",
-		song.Title, song.Artist, song.Album, song.Genre, song.Length, song.Year, song.ID)
+func (r *SongRepository) UpdateSong(id int, params *models.CreateSongParams) error {
+	_, err := r.db.Exec("UPDATE songs SET title=?, artist=?, album=?, genre=?, length=?, url=?, year=?, updated_at=NOW() WHERE id=?",
+		params.Title, params.Artist, params.Album, params.Genre, params.Length, params.URL, params.Year, id)
 
 	return err
 }
