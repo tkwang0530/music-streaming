@@ -33,4 +33,4 @@
 .vscode/
 
 # Ignore config.yaml
-internal/config/.config.yaml
+configs/*.yaml
