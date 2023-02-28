@@ -87,6 +87,12 @@ func (h *SongsHandler) UpdateSong(c *gin.Context) {
 		return
 	}
 
+	song, err = h.songsRepo.GetSong(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get song"})
+		return
+	}
+
 	c.JSON(http.StatusOK, song)
 }
 
