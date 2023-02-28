@@ -1,47 +1,28 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
-	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/tkwang0530/music-streaming-project/internal/config"
+	"github.com/tkwang0530/music-streaming-project/internal/routers"
+	"github.com/tkwang0530/music-streaming-project/pkg/server"
 )
 
-type Song struct {
-	ID     string `json:"id"`
-	Title  string `json:"title"`
-	Artist string `json:"artist"`
-	Album  string `json:"album"`
-	Genre  string `json:"genre"`
-	Length int    `json:"length"`
-	Year   int    `json:"year"`
-}
-
-var songs []*Song = []*Song{}
-
 func main() {
-	r := gin.Default()
-
-	r.GET("/songs", getSongs)
-	r.POST("/songs", addSong)
-
-	if err := r.Run(":8080"); err != nil {
-		log.Fatal("Unable to start server:", err)
-	}
-}
-
-func getSongs(c *gin.Context) {
-	c.JSON(http.StatusOK, songs)
-}
-
-func addSong(c *gin.Context) {
-	song := Song{}
-	if err := json.NewDecoder(c.Request.Body).Decode(&song); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+	// Load the configuration values
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatalf("Failed to load configuration values: %s", err)
 	}
 
-	songs = append(songs, &song)
-	c.JSON(http.StatusOK, song)
+	// Create a new router
+	r := routers.NewRouter()
+
+	// Create a new server instance
+	s := server.NewServer(cfg.Server.Port, r)
+
+	// Start the server
+	if err := s.Start(); err != nil {
+		log.Fatalf("Failed to start server: %s", err)
+	}
 }

@@ -31,3 +31,6 @@
 # Ignore editor specific files
 .idea/
 .vscode/
+
+# Ignore config.yaml
+internal/config/.config.yaml
