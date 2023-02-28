@@ -24,7 +24,7 @@ func main() {
 	defer db.Close()
 
 	// Start server
-	svr, err := server.New(db)
+	svr, err := server.New(db, cfg.Server.Port)
 	if err != nil {
 		log.Fatalf("Failed to create server: %v", err)
 	}
